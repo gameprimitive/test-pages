@@ -12,8 +12,9 @@
     <!-- Pi 帳號登入按鈕 -->
     <button onclick="loginWithPi()">使用 Pi 帳號登入</button>
 
-    <!-- 顯示登入用戶名稱 -->
+    <!-- 顯示登入用戶資訊 -->
     <p id="user-info">未登入</p>
+    <pre id="user-details"></pre>
 
     <!-- Pi 支付按鈕 -->
     <button onclick="startPiPayment()">使用 Pi 支付</button>
@@ -36,6 +37,9 @@
                 if (authResult && authResult.user && authResult.user.username) {
                     currentUser = authResult.user; // 儲存用戶資訊
                     document.getElementById("user-info").innerText = "登入成功，使用者：" + authResult.user.username;
+
+                    // 顯示所有用戶資訊
+                    document.getElementById("user-details").textContent = JSON.stringify(authResult.user, null, 2);
                     console.log("Pi 帳號登入成功:", authResult);
                 } else {
                     console.error("未能取得用戶資訊:", authResult);
