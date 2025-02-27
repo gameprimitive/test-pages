@@ -3,119 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pi Payment</title>
+    <title>Pi 簡易支付測試</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 </head>
 <body>
-    <h1>Pi 支付測試</h1>
-
-    <!-- Pi 帳號登入按鈕 -->
-    <button onclick="loginWithPi()">使用 Pi 帳號登入</button>
-
-    <!-- 顯示登入用戶資訊 -->
-    <p id="user-info">未登入</p>
-    <pre id="user-details"></pre>
-
-    <!-- Pi 支付按鈕 -->
-    <button onclick="startPiPayment()">使用 Pi 支付</button>
-
+    <h1>Pi 支付測試 (無伺服器驗證)</h1>
+    
+    <button onclick="login()">1. 登入 Pi 帳號</button>
+    <button onclick="pay()" style="margin-top:20px">2. 發起支付</button>
+    
     <script>
-        const { Pi } = window;
-        Pi.init({
+        let currentUser = null;
+
+        // 初始化 SDK
+        Pi.init({ 
             version: "2.0",
-            sandbox: true
+            sandbox: true // ✅ 必須啟用沙盒模式
         });
 
-        let currentUser = null; // 存儲當前登入用戶
-
-        // ✅ 修正 `loginWithPi()`，加入 `await`
-        async function loginWithPi() {
+        // 登入功能
+        async function login() {
             try {
-                const scopes = ['username', 'payments']; // 獲取 username 和支付權限
-                const authResult = await Pi.authenticate(scopes);
-
-                if (authResult && authResult.user && authResult.user.username) {
-                    currentUser = authResult.user; // 儲存用戶資訊
-                    document.getElementById("user-info").innerText = "登入成功，使用者：" + authResult.user.username;
-
-                    // 顯示所有用戶資訊
-                    document.getElementById("user-details").textContent = JSON.stringify(authResult.user, null, 2);
-                    console.log("Pi 帳號登入成功:", authResult);
-                } else {
-                    console.error("未能取得用戶資訊:", authResult);
-                    document.getElementById("user-info").innerText = "登入失敗";
-                }
+                const authResult = await Pi.authenticate(['username', 'payments']);
+                currentUser = authResult.user;
+                alert(`登入成功！用戶名: ${authResult.user.username}`);
             } catch (error) {
-                console.error("Pi 帳號登入失敗:", error);
-                document.getElementById("user-info").innerText = "登入失敗";
+                alert("登入失敗: " + error.message);
             }
         }
 
-       async function startPiPayment() {
-  if (!currentUser) {
-    alert("請先登入 Pi 帳號！");
-    return;
-  }
-
-  try {
-    const payment = await Pi.createPayment(
-      {
-        amount: 1,
-        memo: "Test Payment",
-        metadata: { productId: "12345" },
-        targetUsername: "GC4QPS6OKYOYCV4FUCF2VTM6SPXHBD264AP5LUWFF5SXIQZUGUO3ZPCK" 
-      },
-      {
-        onReadyForServerApproval: async (paymentId) => {
-          console.log("支付等待伺服器批准，支付ID:", paymentId);
-          
-          // ✅ 新增：向您的後端發送請求驗證支付
-          try {
-            const response = await fetch('YOUR_BACKEND_APPROVE_URL', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ paymentId })
-            });
-            if (!response.ok) throw new Error('伺服器驗證失敗');
-            Pi.approvePayment(paymentId); // 批准支付
-          } catch (error) {
-            console.error("伺服器驗證錯誤:", error);
-            Pi.cancelPayment(paymentId); // 取消支付
-          }
-        },
-        onReadyForServerCompletion: async (paymentId, txid) => {
-          console.log("支付等待最終確認，支付ID:", paymentId, "交易ID:", txid);
-          
-          // ✅ 新增：通知後端完成支付
-          try {
-            await fetch('YOUR_BACKEND_COMPLETE_URL', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ paymentId, txid })
-            });
-            Pi.completePayment(paymentId); // 完成支付
-            alert("支付成功！"); // 用戶提示
-          } catch (error) {
-            console.error("完成支付錯誤:", error);
-          }
-        },
-        onCancel: (paymentId) => {
-          console.log("用戶取消支付，支付ID:", paymentId);
-          alert("支付已取消"); // 用戶提示
-        },
-        onError: (error, payment) => {
-          console.error("支付錯誤:", error, "支付信息:", payment);
-          alert("支付發生錯誤: " + error.message); // 用戶提示
+        // 支付功能 (跳過伺服器驗證)
+        async function pay() {
+            if (!currentUser) return alert("請先登入！");
+            
+            try {
+                const payment = await Pi.createPayment({
+                    amount: 3.14,
+                    memo: "測試支付",
+                    metadata: { test: "123" },
+                    targetUsername: "GC4QPS6OKYOYCV4FUCF2VTM6SPXHBD264AP5LUWFF5SXIQZUGUO3ZPCK" // ✅ 測試用商家地址
+                }, {
+                    onReadyForServerApproval: (paymentId) => {
+                        // ✅ 直接自動批准支付
+                        Pi.approvePayment(paymentId);
+                        console.log("自動批准支付:", paymentId);
+                    },
+                    onReadyForServerCompletion: (paymentId, txid) => {
+                        // ✅ 直接完成支付
+                        Pi.completePayment(paymentId);
+                        alert("💰 支付成功！交易ID: " + txid);
+                    },
+                    onCancel: (paymentId) => {
+                        alert("❌ 用戶取消支付");
+                    },
+                    onError: (error) => {
+                        alert("支付錯誤: " + error.message);
+                    }
+                });
+                
+                console.log("支付已發起:", payment);
+            } catch (error) {
+                alert("支付失敗: " + error.message);
+            }
         }
-      }
-    );
-
-    console.log("支付已發起: ", payment);
-  } catch (error) {
-    console.error("支付失敗: ", error);
-    alert("支付發起失敗: " + error.message); // 用戶提示
-  }
-}
     </script>
 </body>
 </html>
