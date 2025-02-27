@@ -24,7 +24,7 @@
         // 登入功能
         async function login() {
             try {
-                const authResult = await Pi.authenticate(['username', 'payments']);
+                const authResult = await Pi.authenticate(['uid','username', 'payments','wallet_address']);
                 currentUser = authResult.user;
                 alert(`登入成功！用戶名: ${authResult.user.username}`);
             } catch (error) {
@@ -41,7 +41,7 @@
                     amount: 3.14,
                     memo: "測試支付",
                     metadata: { test: "123" },
-                    targetUsername: "GC4QPS6OKYOYCV4FUCF2VTM6SPXHBD264AP5LUWFF5SXIQZUGUO3ZPCK" // ✅ 測試用商家地址
+                    targetUsername: currentUser.uid // ✅ 測試用商家地址
                 }, {
                     onReadyForServerApproval: (paymentId) => {
                         // ✅ 直接自動批准支付
