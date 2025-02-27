@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pi 支付測試</title>
+    <title>Pi Payment</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 </head>
 <body>
@@ -11,59 +11,46 @@
     
     <!-- Pi 帳號登入按鈕 -->
     <button onclick="loginWithPi()">使用 Pi 帳號登入</button>
+    
+    <!-- 顯示登入用戶名稱 -->
     <p id="user-info">未登入</p>
 
     <!-- Pi 支付按鈕 -->
     <button onclick="startPiPayment()">使用 Pi 支付</button>
 
     <script>
-        let user;  // 存儲 Pi 登入用戶資訊
-
-        document.addEventListener("DOMContentLoaded", function () {
-            if (window.Pi) {
-                console.log("✅ Pi SDK 加載成功");
-
-                Pi.init({
-                    version: "2.0",
-                    sandbox: true  // 測試環境
-                });
-
-            } else {
-                console.error("❌ Pi SDK 加載失敗，請確認是否在 Pi Browser 內運行");
-            }
+        const { Pi } = window;
+        Pi.init({
+            version: "2.0",
+            sandbox: true
         });
 
-        // 📌 Pi 帳號登入
+        // 用戶登入 Pi 帳號
         async function loginWithPi() {
             try {
-                user = await Pi.authenticate(["username", "wallet_address"]);
-                console.log("✅ 登入成功: ", user);
+                const scopes = ['username', 'payments']; // 取得使用者名稱 & 支付權限
+                const user = await Pi.authenticate(scopes, (res) => console.log(res));
 
-                document.getElementById("user-info").innerText = 
-                    `已登入: ${user.user.username}`;
+                document.getElementById("user-info").innerText = "登入成功，使用者：" + user.username;
+                console.log("Pi 帳號登入成功:", user);
             } catch (error) {
-                console.error("❌ 登入失敗: ", error);
+                console.error("Pi 帳號登入失敗:", error);
             }
         }
 
-        // 📌 Pi 支付
+        // Pi 支付功能
         async function startPiPayment() {
-            if (!user) {
-                alert("請先登入 Pi 帳號！");
-                return;
-            }
-
             try {
                 const payment = await Pi.createPayment({
-                    amount: 1, // 付款金額
-                    memo: "Test Payment", // 交易描述
-                    metadata: { productId: "12345" }, // 交易元數據
-                    targetUsername: "YourPiUsername",  // 🚨 這裡填入你的 Pi 錢包帳號
+                    amount: 1,
+                    memo: "Test Payment",
+                    metadata: { productId: "12345" },
+                    targetUsername: "YourPiUsername", // 修改為你的 Pi 帳號
                 });
 
-                console.log("✅ 支付成功: ", payment);
+                console.log("支付成功: ", payment);
             } catch (error) {
-                console.error("❌ 支付失敗: ", error);
+                console.error("支付失敗: ", error);
             }
         }
     </script>
