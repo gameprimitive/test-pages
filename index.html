@@ -24,7 +24,7 @@
         // 登入功能
         async function login() {
             try {
-                const authResult = await Pi.authenticate(['uid','username', 'payments','wallet_address']);
+                const authResult = await Pi.authenticate(['username', 'payments', 'wallet_address']);
                 currentUser = authResult.user;
                 alert(`登入成功！用戶名: ${authResult.user.username}`);
             } catch (error) {
@@ -37,20 +37,19 @@
             if (!currentUser) return alert("請先登入！");
             
             try {
-                const payment = await Pi.createPayment({
+                const paymentData = {
                     amount: 3.14,
                     memo: "測試支付",
-                    metadata: { test: "123" },
-                    targetUsername: currentUser.uid // ✅ 測試用商家地址
-                }, {
+                    metadata: { test: "123" }
+                };
+
+                const paymentCallbacks = {
                     onReadyForServerApproval: (paymentId) => {
                         // ✅ 直接自動批准支付
-                        
                         console.log("自動批准支付:", paymentId);
                     },
                     onReadyForServerCompletion: (paymentId, txid) => {
                         // ✅ 直接完成支付
-                       
                         alert("💰 支付成功！交易ID: " + txid);
                     },
                     onCancel: (paymentId) => {
@@ -59,8 +58,9 @@
                     onError: (error) => {
                         alert("支付錯誤: " + error.message);
                     }
-                });
-                
+                };
+
+                const payment = await Pi.createPayment(paymentData, paymentCallbacks);
                 console.log("支付已發起:", payment);
             } catch (error) {
                 alert("支付失敗: " + error.message);
