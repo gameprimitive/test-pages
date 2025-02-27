@@ -51,42 +51,71 @@
             }
         }
 
-        // ✅ 修正 `startPiPayment()`
-        async function startPiPayment() {
-            if (!currentUser) {
-                alert("請先登入 Pi 帳號！");
-                return;
-            }
+       async function startPiPayment() {
+  if (!currentUser) {
+    alert("請先登入 Pi 帳號！");
+    return;
+  }
 
-            try {
-                const payment = await Pi.createPayment(
-                    {
-                        amount: 1,  // 金額
-                        memo: "Test Payment",
-                        metadata: { productId: "12345" },
-                        targetUsername: "GC4QPS6OKYOYCV4FUCF2VTM6SPXHBD264AP5LUWFF5SXIQZUGUO3ZPCK" // **請填入商家的 Pi 帳號**
-                    },
-                    {
-                        onReadyForServerApproval: (paymentId) => {
-                            console.log("支付準備批准，支付ID:", paymentId);
-                        },
-                        onReadyForServerCompletion: (paymentId, txid) => {
-                            console.log("支付完成，支付ID:", paymentId, "交易ID:", txid);
-                        },
-                        onCancel: (paymentId) => {
-                            console.log("支付取消，支付ID:", paymentId);
-                        },
-                        onError: (error, payment) => {
-                            console.error("支付錯誤:", error, "支付信息:", payment);
-                        }
-                    }
-                );
-
-                console.log("支付發起成功: ", payment);
-            } catch (error) {
-                console.error("支付失敗: ", error);
-            }
+  try {
+    const payment = await Pi.createPayment(
+      {
+        amount: 1,
+        memo: "Test Payment",
+        metadata: { productId: "12345" },
+        targetUsername: "GC4QPS6OKYOYCV4FUCF2VTM6SPXHBD264AP5LUWFF5SXIQZUGUO3ZPCK" 
+      },
+      {
+        onReadyForServerApproval: async (paymentId) => {
+          console.log("支付等待伺服器批准，支付ID:", paymentId);
+          
+          // ✅ 新增：向您的後端發送請求驗證支付
+          try {
+            const response = await fetch('YOUR_BACKEND_APPROVE_URL', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ paymentId })
+            });
+            if (!response.ok) throw new Error('伺服器驗證失敗');
+            Pi.approvePayment(paymentId); // 批准支付
+          } catch (error) {
+            console.error("伺服器驗證錯誤:", error);
+            Pi.cancelPayment(paymentId); // 取消支付
+          }
+        },
+        onReadyForServerCompletion: async (paymentId, txid) => {
+          console.log("支付等待最終確認，支付ID:", paymentId, "交易ID:", txid);
+          
+          // ✅ 新增：通知後端完成支付
+          try {
+            await fetch('YOUR_BACKEND_COMPLETE_URL', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ paymentId, txid })
+            });
+            Pi.completePayment(paymentId); // 完成支付
+            alert("支付成功！"); // 用戶提示
+          } catch (error) {
+            console.error("完成支付錯誤:", error);
+          }
+        },
+        onCancel: (paymentId) => {
+          console.log("用戶取消支付，支付ID:", paymentId);
+          alert("支付已取消"); // 用戶提示
+        },
+        onError: (error, payment) => {
+          console.error("支付錯誤:", error, "支付信息:", payment);
+          alert("支付發生錯誤: " + error.message); // 用戶提示
         }
+      }
+    );
+
+    console.log("支付已發起: ", payment);
+  } catch (error) {
+    console.error("支付失敗: ", error);
+    alert("支付發起失敗: " + error.message); // 用戶提示
+  }
+}
     </script>
 </body>
 </html>
