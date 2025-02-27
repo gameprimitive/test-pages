@@ -7,11 +7,11 @@
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 </head>
 <body>
-    <h1>Pi 支付測試_202502280202</h1>
-    
+    <h1>Pi 支付測試</h1>
+
     <!-- Pi 帳號登入按鈕 -->
     <button onclick="loginWithPi()">使用 Pi 帳號登入</button>
-    
+
     <!-- 顯示登入用戶名稱 -->
     <p id="user-info">未登入</p>
 
@@ -27,20 +27,18 @@
 
         let currentUser = null; // 存儲當前登入用戶
 
-        // ✅ **修正 `loginWithPi()`，加入 `await`**
+        // ✅ 修正 `loginWithPi()`，加入 `await`
         async function loginWithPi() {
             try {
-                const scopes = ['username', 'payments']; // 取得使用者名稱 & 支付權限
-                
-                const user = await Pi.authenticate(scopes); // 使用 `await`
-                console.log("回傳的使用者資訊:", user); // 確保 API 返回的資訊
+                const scopes = ['username', 'payments']; // 獲取 username 和支付權限
+                const authResult = await Pi.authenticate(scopes);
 
-                if (user && user.username) {
-                    currentUser = user; // 儲存用戶資訊
-                    document.getElementById("user-info").innerText = "登入成功，使用者：" + user.username;
-                    console.log("Pi 帳號登入成功:", user);
+                if (authResult && authResult.user && authResult.user.username) {
+                    currentUser = authResult.user; // 儲存用戶資訊
+                    document.getElementById("user-info").innerText = "登入成功，使用者：" + authResult.user.username;
+                    console.log("Pi 帳號登入成功:", authResult);
                 } else {
-                    console.error("未能取得用戶資訊:", user);
+                    console.error("未能取得用戶資訊:", authResult);
                     document.getElementById("user-info").innerText = "登入失敗";
                 }
             } catch (error) {
@@ -49,7 +47,7 @@
             }
         }
 
-        // ✅ **修正 `startPiPayment()`**
+        // ✅ 修正 `startPiPayment()`
         async function startPiPayment() {
             if (!currentUser) {
                 alert("請先登入 Pi 帳號！");
@@ -62,7 +60,7 @@
                         amount: 1,  // 金額
                         memo: "Test Payment",
                         metadata: { productId: "12345" },
-                        targetUsername: currentUser.username  // **自動使用當前登入用戶的 Pi 帳號**
+                        targetUsername: "YourMerchantUsername" // **請填入商家的 Pi 帳號**
                     },
                     {
                         onReadyForServerApproval: (paymentId) => {
