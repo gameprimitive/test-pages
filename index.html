@@ -27,20 +27,29 @@
 
         let currentUser = null; // 存儲當前登入用戶
 
-        // 用戶登入 Pi 帳號
+        // ✅ 修正 `loginWithPi()`
         async function loginWithPi() {
             try {
                 const scopes = ['username', 'payments']; // 取得使用者名稱 & 支付權限
-                currentUser = await Pi.authenticate(scopes, (res) => console.log(res));
+                
+                Pi.authenticate(scopes, (user) => {
+                    if (user && user.username) {
+                        currentUser = user; // 儲存用戶資訊
+                        document.getElementById("user-info").innerText = "登入成功，使用者：" + user.username;
+                        console.log("Pi 帳號登入成功:", user);
+                    } else {
+                        console.error("未能取得用戶資訊:", user);
+                        document.getElementById("user-info").innerText = "登入失敗";
+                    }
+                });
 
-                document.getElementById("user-info").innerText = "登入成功，使用者：" + currentUser.username;
-                console.log("Pi 帳號登入成功:", currentUser);
             } catch (error) {
                 console.error("Pi 帳號登入失敗:", error);
+                document.getElementById("user-info").innerText = "登入失敗";
             }
         }
 
-        // Pi 支付功能
+        // ✅ 修正 `startPiPayment()` 並補全回調函數
         async function startPiPayment() {
             if (!currentUser) {
                 alert("請先登入 Pi 帳號！");
@@ -71,7 +80,7 @@
                     }
                 );
 
-                console.log("支付成功: ", payment);
+                console.log("支付發起成功: ", payment);
             } catch (error) {
                 console.error("支付失敗: ", error);
             }
