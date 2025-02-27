@@ -8,16 +8,23 @@
 </head>
 <body>
     <h1>Pi 支付測試</h1>
+    
+    <!-- Pi 帳號登入按鈕 -->
+    <button onclick="loginWithPi()">使用 Pi 帳號登入</button>
+    <p id="user-info">未登入</p>
+
+    <!-- Pi 支付按鈕 -->
     <button onclick="startPiPayment()">使用 Pi 支付</button>
 
     <script>
+        let user;  // 存儲 Pi 登入用戶資訊
+
         document.addEventListener("DOMContentLoaded", function () {
-            // 檢查 Pi SDK 是否成功加載
             if (window.Pi) {
                 console.log("✅ Pi SDK 加載成功");
-                
+
                 Pi.init({
-                    version: "2.0",  
+                    version: "2.0",
                     sandbox: true  // 測試環境
                 });
 
@@ -26,13 +33,32 @@
             }
         });
 
+        // 📌 Pi 帳號登入
+        async function loginWithPi() {
+            try {
+                user = await Pi.authenticate(["username", "wallet_address"]);
+                console.log("✅ 登入成功: ", user);
+
+                document.getElementById("user-info").innerText = 
+                    `已登入: ${user.user.username}`;
+            } catch (error) {
+                console.error("❌ 登入失敗: ", error);
+            }
+        }
+
+        // 📌 Pi 支付
         async function startPiPayment() {
+            if (!user) {
+                alert("請先登入 Pi 帳號！");
+                return;
+            }
+
             try {
                 const payment = await Pi.createPayment({
-                    amount: 1,
-                    memo: "Test Payment",
-                    metadata: { productId: "12345" },
-                    targetUsername: "YourPiUsername",  // 你的 Pi 錢包用戶名
+                    amount: 1, // 付款金額
+                    memo: "Test Payment", // 交易描述
+                    metadata: { productId: "12345" }, // 交易元數據
+                    targetUsername: "YourPiUsername",  // 🚨 這裡填入你的 Pi 錢包帳號
                 });
 
                 console.log("✅ 支付成功: ", payment);
