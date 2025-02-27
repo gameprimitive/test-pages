@@ -7,7 +7,7 @@
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 </head>
 <body>
-    <h1>Pi 支付測試_202502280159</h1>
+    <h1>Pi 支付測試_202502280202</h1>
     
     <!-- Pi 帳號登入按鈕 -->
     <button onclick="loginWithPi()">使用 Pi 帳號登入</button>
@@ -25,7 +25,7 @@
             sandbox: true
         });
 
-        let currentUser = null;
+        let currentUser = null; // 存儲當前登入用戶
 
         // 用戶登入 Pi 帳號
         async function loginWithPi() {
@@ -53,24 +53,18 @@
                         amount: 1,  // 金額
                         memo: "Test Payment",
                         metadata: { productId: "12345" },
-                        targetUsername: "YourPiUsername" // 請更換為你的 Pi 帳號
+                        targetUsername: currentUser.username  // **自動使用當前登入用戶的 Pi 帳號**
                     },
                     {
-                        // 當支付準備好時，通知後端批准支付
                         onReadyForServerApproval: (paymentId) => {
                             console.log("支付準備批准，支付ID:", paymentId);
-                            // 這裡可以加上後端 API 通知伺服器批准支付
                         },
-                        // 當支付完成後，通知後端確認支付
                         onReadyForServerCompletion: (paymentId, txid) => {
                             console.log("支付完成，支付ID:", paymentId, "交易ID:", txid);
-                            // 這裡可以加上後端 API 確認支付完成
                         },
-                        // 如果支付被取消
                         onCancel: (paymentId) => {
                             console.log("支付取消，支付ID:", paymentId);
                         },
-                        // 如果支付發生錯誤
                         onError: (error, payment) => {
                             console.error("支付錯誤:", error, "支付信息:", payment);
                         }
