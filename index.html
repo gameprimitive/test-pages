@@ -25,14 +25,16 @@
             sandbox: true
         });
 
+        let currentUser = null;
+
         // 用戶登入 Pi 帳號
         async function loginWithPi() {
             try {
                 const scopes = ['username', 'payments']; // 取得使用者名稱 & 支付權限
-                const user = await Pi.authenticate(scopes, (res) => console.log(res));
+                currentUser = await Pi.authenticate(scopes, (res) => console.log(res));
 
-                document.getElementById("user-info").innerText = "登入成功，使用者：" + user.username;
-                console.log("Pi 帳號登入成功:", user);
+                document.getElementById("user-info").innerText = "登入成功，使用者：" + currentUser.username;
+                console.log("Pi 帳號登入成功:", currentUser);
             } catch (error) {
                 console.error("Pi 帳號登入失敗:", error);
             }
@@ -40,13 +42,40 @@
 
         // Pi 支付功能
         async function startPiPayment() {
+            if (!currentUser) {
+                alert("請先登入 Pi 帳號！");
+                return;
+            }
+
             try {
-                const payment = await Pi.createPayment({
-                    amount: 1,
-                    memo: "Test Payment",
-                    metadata: { productId: "12345" },
-                    targetUsername: "YourPiUsername", // 修改為你的 Pi 帳號
-                });
+                const payment = await Pi.createPayment(
+                    {
+                        amount: 1,  // 金額
+                        memo: "Test Payment",
+                        metadata: { productId: "12345" },
+                        targetUsername: "YourPiUsername" // 請更換為你的 Pi 帳號
+                    },
+                    {
+                        // 當支付準備好時，通知後端批准支付
+                        onReadyForServerApproval: (paymentId) => {
+                            console.log("支付準備批准，支付ID:", paymentId);
+                            // 這裡可以加上後端 API 通知伺服器批准支付
+                        },
+                        // 當支付完成後，通知後端確認支付
+                        onReadyForServerCompletion: (paymentId, txid) => {
+                            console.log("支付完成，支付ID:", paymentId, "交易ID:", txid);
+                            // 這裡可以加上後端 API 確認支付完成
+                        },
+                        // 如果支付被取消
+                        onCancel: (paymentId) => {
+                            console.log("支付取消，支付ID:", paymentId);
+                        },
+                        // 如果支付發生錯誤
+                        onError: (error, payment) => {
+                            console.error("支付錯誤:", error, "支付信息:", payment);
+                        }
+                    }
+                );
 
                 console.log("支付成功: ", payment);
             } catch (error) {
