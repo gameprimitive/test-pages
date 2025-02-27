@@ -12,6 +12,9 @@
     <button onclick="login()">1. 登入 Pi 帳號</button>
     <button onclick="pay()" style="margin-top:20px">2. 發起支付</button>
     
+    <h2>用戶資訊：</h2>
+    <pre id="user-info">尚未登入</pre>
+    
     <script>
         let currentUser = null;
 
@@ -26,6 +29,7 @@
             try {
                 const authResult = await Pi.authenticate(['username', 'payments', 'wallet_address']);
                 currentUser = authResult.user;
+                document.getElementById('user-info').textContent = JSON.stringify(authResult.user, null, 2);
                 alert(`登入成功！用戶名: ${authResult.user.username}`);
             } catch (error) {
                 alert("登入失敗: " + error.message);
