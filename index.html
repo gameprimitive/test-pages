@@ -1,12 +1,36 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Pages 測試</title>
+    <title>Pi Payment</title>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 </head>
 <body>
-    <h1>成功部署 GitHub Pages！🎉</h1>
-    <p>如果你能看到這行文字，表示 GitHub Pages 已成功運作。</p>
+    <h1>Pi 支付測試</h1>
+    <button onclick="startPiPayment()">使用 Pi 支付</button>
+
+    <script>
+        const { Pi } = window;
+        Pi.init({
+            version: "2.0",
+            sandbox: true
+        });
+
+        async function startPiPayment() {
+            try {
+                const payment = await Pi.createPayment({
+                    amount: 1,
+                    memo: "Test Payment",
+                    metadata: { productId: "12345" },
+                    targetUsername: "YourPiUsername",
+                });
+
+                console.log("支付成功: ", payment);
+            } catch (error) {
+                console.error("支付失敗: ", error);
+            }
+        }
+    </script>
 </body>
 </html>
