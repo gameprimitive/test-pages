@@ -27,29 +27,29 @@
 
         let currentUser = null; // 存儲當前登入用戶
 
-        // ✅ 修正 `loginWithPi()`
+        // ✅ **修正 `loginWithPi()`，加入 `await`**
         async function loginWithPi() {
             try {
                 const scopes = ['username', 'payments']; // 取得使用者名稱 & 支付權限
                 
-                Pi.authenticate(scopes, (user) => {
-                    if (user && user.username) {
-                        currentUser = user; // 儲存用戶資訊
-                        document.getElementById("user-info").innerText = "登入成功，使用者：" + user.username;
-                        console.log("Pi 帳號登入成功:", user);
-                    } else {
-                        console.error("未能取得用戶資訊:", user);
-                        document.getElementById("user-info").innerText = "登入失敗";
-                    }
-                });
+                const user = await Pi.authenticate(scopes); // 使用 `await`
+                console.log("回傳的使用者資訊:", user); // 確保 API 返回的資訊
 
+                if (user && user.username) {
+                    currentUser = user; // 儲存用戶資訊
+                    document.getElementById("user-info").innerText = "登入成功，使用者：" + user.username;
+                    console.log("Pi 帳號登入成功:", user);
+                } else {
+                    console.error("未能取得用戶資訊:", user);
+                    document.getElementById("user-info").innerText = "登入失敗";
+                }
             } catch (error) {
                 console.error("Pi 帳號登入失敗:", error);
                 document.getElementById("user-info").innerText = "登入失敗";
             }
         }
 
-        // ✅ 修正 `startPiPayment()` 並補全回調函數
+        // ✅ **修正 `startPiPayment()`**
         async function startPiPayment() {
             if (!currentUser) {
                 alert("請先登入 Pi 帳號！");
