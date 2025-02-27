@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pi Payment</title>
+    <title>Pi 支付測試</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 </head>
 <body>
@@ -11,10 +11,19 @@
     <button onclick="startPiPayment()">使用 Pi 支付</button>
 
     <script>
-        const { Pi } = window;
-        Pi.init({
-            version: "2.0",
-            sandbox: true
+        document.addEventListener("DOMContentLoaded", function () {
+            // 檢查 Pi SDK 是否成功加載
+            if (window.Pi) {
+                console.log("✅ Pi SDK 加載成功");
+                
+                Pi.init({
+                    version: "2.0",  
+                    sandbox: true  // 測試環境
+                });
+
+            } else {
+                console.error("❌ Pi SDK 加載失敗，請確認是否在 Pi Browser 內運行");
+            }
         });
 
         async function startPiPayment() {
@@ -23,12 +32,12 @@
                     amount: 1,
                     memo: "Test Payment",
                     metadata: { productId: "12345" },
-                    targetUsername: "YourPiUsername",
+                    targetUsername: "YourPiUsername",  // 你的 Pi 錢包用戶名
                 });
 
-                console.log("支付成功: ", payment);
+                console.log("✅ 支付成功: ", payment);
             } catch (error) {
-                console.error("支付失敗: ", error);
+                console.error("❌ 支付失敗: ", error);
             }
         }
     </script>
