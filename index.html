@@ -45,12 +45,12 @@
                 }, {
                     onReadyForServerApproval: (paymentId) => {
                         // ✅ 直接自動批准支付
-                        Pi.approvePayment(paymentId);
+                        
                         console.log("自動批准支付:", paymentId);
                     },
                     onReadyForServerCompletion: (paymentId, txid) => {
                         // ✅ 直接完成支付
-                        Pi.completePayment(paymentId);
+                       
                         alert("💰 支付成功！交易ID: " + txid);
                     },
                     onCancel: (paymentId) => {
