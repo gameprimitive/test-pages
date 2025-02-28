@@ -3,10 +3,12 @@ const axios = require("axios");
     const API_KEY = 'he0f7kqvflgdilyarfinvgyaulpbff1fosodotrhzlf5poeici6aufviegjdhtww';
 const verifyPayment = async (paymentId) => {
     try {
-        const response = await axios.get(`https://api.minepi.com/v2/payments/${paymentId}`, {
-            headers: { Authorization:  `Key ${API_KEY}` },
-        });
-
+		const response = await axios.post(`https://api.minepi.com/v2/payments/${paymentId}`, {}, {
+            headers: {
+                'Authorization': `Key ${API_KEY}`
+            }
+        });		
+      
         return response.data;
     } catch (error) {
         console.error("❌ 無法獲取支付狀態:", error.response?.data || error.message);
