@@ -3,50 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pi 支付测试</title>
+    <title>Pi 简易支付测试</title>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-</head>
-<body>
-    <h1>Pi 支付测试 (无服务器验证)</h1>
-    
-    <button onclick="login()">1. 登录 Pi 帐号</button>
-    <button onclick="pay()" style="margin-top:20px">2. 发起支付</button>
-    
-    <h2>用户信息：</h2>
-    <pre id="user-info">尚未登录</pre>
-    
     <script>
-        let currentUser = null;
-
         // 初始化 SDK
         Pi.init({ 
             version: "2.0",
-            sandbox: true // 必须启用沙盒模式
+            sandbox: true // ✅ 必须启用沙盒模式
         });
+
+        // 处理未完成的支付
+        function onIncompletePaymentFound(payment) {
+            console.log("⚠️ 发现未完成的支付:", payment);
+            // 在此处理未完成的支付，例如向服务器请求支付状态
+            handleIncompletePayment(payment);
+        }
 
         // 登录功能
         async function login() {
             try {
+                // 1️⃣ 进行 Pi Network 身份验证
                 const authResult = await Pi.authenticate(['username', 'wallet_address'], onIncompletePaymentFound);
-                currentUser = authResult.user;
-                document.getElementById("user-info").textContent = JSON.stringify(authResult.user, null, 2);
+                console.log("✅ 登录成功", authResult);
+                // 处理登录后的逻辑
                 alert("登录成功！");
             } catch (error) {
-                console.error("登录失败:", error);
+                console.error("❌ 登录失败:", error);
                 alert("登录失败：" + error.message);
             }
         }
 
-        // 处理未完成支付
-        function onIncompletePaymentFound(payment) {
-            console.log("发现未完成支付:", payment);
-            // 在这里您可以进行支付状态检查，并根据需要发起支付完成请求
-            handleIncompletePayment(payment);
-        }
-
+        // 处理未完成支付的逻辑
         async function handleIncompletePayment(payment) {
             try {
-                // 1️⃣ 向您的后端请求支付确认
+                // 向后端请求支付状态
                 const response = await fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/verifyPayment", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -54,19 +44,19 @@
                 });
 
                 const result = await response.json();
-                console.log("后端响应:", result);
+                console.log("✅ 后端响应:", result);
 
                 if (result.status === "completed") {
-                    console.log("付款已完成");
+                    console.log("✅ 付款已完成");
                 } else if (result.status === "pending") {
-                    console.log("尝试完成付款...");
+                    console.log("🔄 尝试完成付款...");
                     await Pi.completePayment(payment.identifier); // 完成支付
-                    console.log("支付已完成");
+                    console.log("✅ 支付已完成");
                 } else {
-                    console.warn("支付状态未知");
+                    console.warn("⚠️ 支付状态未知");
                 }
             } catch (error) {
-                console.error("处理未完成支付失败:", error);
+                console.error("❌ 处理未完成支付失败:", error);
             }
         }
 
@@ -85,22 +75,17 @@
                 const paymentCallbacks = {
                     onReadyForServerApproval: async (paymentId) => {
                         console.log("支付等待批准:", paymentId);
-
-                        try {
-                            const response = await fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/approvePayment", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ paymentId })
-                            });
-
-                            const result = await response.json();
-                            if (result.success) {
-                                console.log("支付已批准，交易ID:", result.txid);
-                            } else {
-                                console.error("支付批准失败:", result.error);
-                            }
-                        } catch (error) {
-                            console.error("服务器错误:", error);
+                        // 向后端请求批准支付
+                        const response = await fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/approvePayment", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ paymentId })
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            console.log("支付已批准，交易ID:", result.txid);
+                        } else {
+                            console.error("支付批准失败:", result.error);
                         }
                     },
                     onReadyForServerCompletion: (paymentId, txid) => {
@@ -121,5 +106,14 @@
             }
         }
     </script>
+</head>
+<body>
+    <h1>Pi 支付测试 (无服务器验证)</h1>
+    
+    <button onclick="login()">1. 登录 Pi 账号</button>
+    <button onclick="pay()" style="margin-top:20px">2. 发起支付</button>
+    
+    <h2>用户信息：</h2>
+    <pre id="user-info">尚未登录</pre>
 </body>
 </html>
