@@ -1,0 +1,2 @@
+[build]
+  functions = "functions"  # 確保 Netlify 會識別 functions 資料夾
