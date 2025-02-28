@@ -10,15 +10,7 @@
         Pi.init({ 
             version: "2.0",
             sandbox: true // ✅ 必须启用沙盒模式
-			// 新增广告相关配置
-  adsConfig: {
-    disable: true // 明确禁用广告功能
-  },
-  // 错误白名单
-  ignoreErrors: [
-    'AdsV2 not supported',
-    'AdTimeout'
-  ]
+			
         });
 
         let currentUser = null; // 定义 currentUser 变量
