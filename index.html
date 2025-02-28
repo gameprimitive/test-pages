@@ -12,6 +12,8 @@
             sandbox: true // ✅ 必须启用沙盒模式
         });
 
+        let currentUser = null; // 定义 currentUser 变量
+
         // 处理未完成的支付
         function onIncompletePaymentFound(payment) {
             console.log("⚠️ 发现未完成的支付:", payment);
@@ -25,6 +27,7 @@
                 // 1️⃣ 进行 Pi Network 身份验证
                 const authResult = await Pi.authenticate(['username', 'wallet_address'], onIncompletePaymentFound);
                 console.log("✅ 登录成功", authResult);
+                currentUser = authResult.user; // 将用户信息存储在 currentUser 变量中
                 // 处理登录后的逻辑
                 alert("登录成功！");
             } catch (error) {
@@ -69,7 +72,7 @@
                     amount: 3.14,
                     memo: "测试支付",
                     metadata: { test: "123" },
-                    uid: currentUser.uid // 必须提供 uid
+                    uid: currentUser.uid // 使用 currentUser 变量
                 };
 
                 const paymentCallbacks = {
@@ -108,7 +111,7 @@
     </script>
 </head>
 <body>
-    <h1>Pi 支付测试 (无服务器验证)</h1>
+    <h1>Pi 支付测试 </h1>
     
     <button onclick="login()">1. 登录 Pi 账号</button>
     <button onclick="pay()" style="margin-top:20px">2. 发起支付</button>
