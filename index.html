@@ -7,7 +7,7 @@
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 </head>
 <body>
-    <h1>Pi 支付測試 (無伺服器驗證)</h1>
+    <h1>Pi 支付測試 </h1>
     
     <button onclick="login()">1. 登入 Pi 帳號</button>
     <button onclick="pay()" style="margin-top:20px">2. 發起支付</button>
@@ -29,8 +29,24 @@
             try {
                 const authResult = await Pi.authenticate(['username', 'payments', 'wallet_address']);
                 currentUser = authResult.user;
+
+                // 更新 UI
                 document.getElementById('user-info').textContent = JSON.stringify(authResult.user, null, 2);
                 alert(`登入成功！用戶名: ${authResult.user.username}`);
+
+                // 🔹 向後端驗證 accessToken
+                const response = await fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/verifyLogin", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ accessToken: authResult.accessToken })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert("✅ 伺服器驗證成功！歡迎 " + authResult.user.username);
+                } else {
+                    alert("❌ 伺服器驗證失敗: " + result.error);
+                }
             } catch (error) {
                 alert("登入失敗: " + error.message);
             }
