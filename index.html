@@ -25,7 +25,7 @@
         async function login() {
             try {
                 // 1️⃣ 进行 Pi Network 身份验证
-                const authResult = await Pi.authenticate(['username', 'wallet_address'], onIncompletePaymentFound);
+                const authResult = await Pi.authenticate(['username', 'wallet_address', 'payments'], onIncompletePaymentFound);
                 console.log("✅ 登录成功", authResult);
                 currentUser = authResult.user; // 将用户信息存储在 currentUser 变量中
                 // 处理登录后的逻辑
