@@ -37,39 +37,56 @@
         }
 
         // 支付功能 (跳過伺服器驗證)
-        async function pay() {
-            if (!currentUser) return alert("請先登入！");
-            
-            try {
-                const paymentData = {
-                    amount: 3.14,
-                    memo: "測試支付",
-                    metadata: { test: "123" }
-                };
+    async function pay() {
+    if (!currentUser) return alert("請先登入！");
 
-                const paymentCallbacks = {
-                    onReadyForServerApproval: (paymentId) => {
-                        // ✅ 直接自動批准支付
-                        console.log("自動批准支付:", paymentId);
-                    },
-                    onReadyForServerCompletion: (paymentId, txid) => {
-                        // ✅ 直接完成支付
-                        alert("💰 支付成功！交易ID: " + txid);
-                    },
-                    onCancel: (paymentId) => {
-                        alert("❌ 用戶取消支付");
-                    },
-                    onError: (error) => {
-                        alert("支付錯誤: " + error.message);
+    try {
+        const paymentData = {
+            amount: 3.14,
+            memo: "測試支付",
+            metadata: { test: "123" }
+        };
+
+        const paymentCallbacks = {
+            onReadyForServerApproval: async (paymentId) => {
+                console.log("支付等待批准:", paymentId);
+
+                // 🔹 這裡請求伺服器批准支付
+                try {
+                    const response = await fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/approvePayment", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ paymentId })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        console.log("支付已批准，交易ID:", result.txid);
+                    } else {
+                        console.error("批准支付失敗:", result.error);
                     }
-                };
-
-                const payment = await Pi.createPayment(paymentData, paymentCallbacks);
-                console.log("支付已發起:", payment);
-            } catch (error) {
-                alert("支付失敗: " + error.message);
+                } catch (error) {
+                    console.error("伺服器錯誤:", error);
+                }
+            },
+            onReadyForServerCompletion: (paymentId, txid) => {
+                alert("💰 支付成功！交易ID: " + txid);
+            },
+            onCancel: (paymentId) => {
+                alert("❌ 用戶取消支付");
+            },
+            onError: (error) => {
+                alert("支付錯誤: " + error.message);
             }
-        }
+        };
+
+        const payment = await Pi.createPayment(paymentData, paymentCallbacks);
+        console.log("支付已發起:", payment);
+    } catch (error) {
+        alert("支付失敗: " + error.message);
+    }
+}
+
     </script>
 </body>
 </html>
