@@ -1,9 +1,10 @@
 const axios = require("axios");
-
+ // 替換為您的 Pi 應用的 API 金鑰
+    const API_KEY = 'he0f7kqvflgdilyarfinvgyaulpbff1fosodotrhzlf5poeici6aufviegjdhtww';
 const verifyPayment = async (paymentId) => {
     try {
         const response = await axios.get(`https://api.minepi.com/v2/payments/${paymentId}`, {
-            headers: { Authorization: `Key 你的API_KEY` },
+            headers: { Authorization:  `Key ${API_KEY}` },
         });
 
         return response.data;
