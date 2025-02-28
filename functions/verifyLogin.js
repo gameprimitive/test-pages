@@ -24,4 +24,30 @@ const verifyLogin = async (accessToken) => {
   }
 };
 
-module.exports = verifyLogin;
+/**
+ * Netlify Lambda 函數入口
+ */
+exports.handler = async (event) => {
+  try {
+    const { accessToken } = JSON.parse(event.body);
+
+    if (!accessToken) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "❌ 缺少 accessToken" }),
+      };
+    }
+
+    const userData = await verifyLogin(accessToken);
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: "✅ 登入驗證成功", user: userData }),
+    };
+  } catch (error) {
+    return {
+      statusCode: 401,
+      body: JSON.stringify({ error: error.message }),
+    };
+  }
+};
