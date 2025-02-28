@@ -10,6 +10,15 @@
         Pi.init({ 
             version: "2.0",
             sandbox: true // ✅ 必须启用沙盒模式
+			// 新增广告相关配置
+  adsConfig: {
+    disable: true // 明确禁用广告功能
+  },
+  // 错误白名单
+  ignoreErrors: [
+    'AdsV2 not supported',
+    'AdTimeout'
+  ]
         });
 
         let currentUser = null; // 定义 currentUser 变量
@@ -41,31 +50,43 @@
 
  async function handleIncompletePayment(payment) {
   try {
-    const response = await fetch("/.netlify/functions/verifyPayment", {
+    const response = await fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/verifyPayment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ paymentId: payment.identifier }),
     });
 
+    // 添加响应状态检查
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "验证支付失败");
+    }
+
     const result = await response.json();
     
-    // 根据标准化状态处理
-    if (result.status.isCancelled) {
+    // 安全访问对象属性
+    const paymentStatus = result.status || {};
+    const isCancelled = paymentStatus.cancelled || paymentStatus.user_cancelled;
+
+    if (isCancelled) {
+      console.log("取消遗留支付");
       await Pi.cancelPayment(payment.identifier);
       return;
     }
 
-    if (result.status.isVerified && !result.status.isCompleted) {
+    if (paymentStatus.transaction_verified && !paymentStatus.developer_completed) {
+      console.log("完成待处理的支付");
       await Pi.completePayment(payment.identifier);
     }
 
   } catch (error) {
     console.error("支付处理失败:", error);
-    // 显示具体错误代码
-    alert(`错误代码: ${error.code || 'UNKNOWN'}`);
+    // 显示用户友好提示
+    alert(`处理失败: ${error.message}`);
+    // 自动重试机制
+    setTimeout(() => handleIncompletePayment(payment), 10000);
   }
 }
-
         // 支付功能
         async function pay() {
             if (!currentUser) return alert("请先登录！");
