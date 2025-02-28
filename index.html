@@ -25,16 +25,42 @@
         });
 
         // 登入功能
-        async function login() {
-            try {
-                const authResult = await Pi.authenticate(['username', 'payments', 'wallet_address']);
-                currentUser = authResult.user;
-                document.getElementById('user-info').textContent = JSON.stringify(authResult.user, null, 2);
-                alert(`登入成功！用戶名: ${authResult.user.username}`);
-            } catch (error) {
-                alert("登入失敗: " + error.message);
-            }
+       async function login() {
+    try {
+        // 1️⃣ 進行 Pi Network 登入
+        const authResult = await Pi.authenticate(['username', 'wallet_address']);
+        currentUser = authResult.user;
+        console.log("✅ 登入成功！", authResult.user);
+
+        // 2️⃣ 清除所有未處理的支付
+        await Pi.cancelAllPayments();
+        console.log("✅ 已清除所有未處理的支付");
+
+        // 3️⃣ 更新 UI 顯示用戶資訊
+        document.getElementById('user-info').textContent = JSON.stringify(authResult.user, null, 2);
+        alert(`登入成功！用戶名: ${authResult.user.username}`);
+
+        // 4️⃣ 發送 accessToken 到後端驗證
+        const response = await fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/verifyLogin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ accessToken: authResult.accessToken }) // 確保 accessToken 正確傳遞
+        });
+
+        const result = await response.json();
+        console.log("伺服器回應:", result);
+
+        if (result.error) {
+            alert("驗證失敗：" + result.error);
+        } else {
+            alert("登入驗證成功！");
         }
+    } catch (error) {
+        alert("登入失敗: " + error.message);
+        console.error("❌ 登入失敗:", error);
+    }
+}
+
 
         // 支付功能 (跳過伺服器驗證)
     async function pay() {
