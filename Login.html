@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pi 登录</title>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+</head>
+<body>
+    <h2>請點擊按鈕登入 Pi Network</h2>
+    <button onclick="login()">Pi 登录</button>
+
+    <script>
+        async function login() {
+            try {
+                // 進行 Pi Network 身份驗證
+                const authResult = await Pi.authenticate(['username', 'wallet_address'], onIncompletePaymentFound);
+                console.log("✅ Pi 登录成功:", authResult);
+
+                // 取得登入資訊
+                const accessToken = authResult.accessToken;
+                const username = authResult.user.username;
+
+                console.log("🎯 回傳給 Unity:", accessToken, username);
+
+                // ✅ 透過 Unity WebGL SendMessage 回傳登入資訊
+                if (typeof unityInstance !== "undefined") {
+                    unityInstance.SendMessage("PiLoginHandler", "OnPiLoginSuccess", `${accessToken}|${username}`);
+                }
+            } catch (error) {
+                console.error("❌ 登录失败:", error);
+                alert("登录失败：" + error.message);
+            }
+        }
+
+        function onIncompletePaymentFound(payment) {
+            console.warn("⚠️ 未完成的付款交易:", payment);
+        }
+    </script>
+</body>
+</html>
