@@ -55,26 +55,38 @@ async function onIncompletePaymentFound(payment) {
   }
 }
 function handleIncompletePayment(payment) {
-  // 发送请求到服务器，尝试完成支付
-fetch('https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/completepayment', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({ paymentId: payment.identifier }), // 确保 payment.identifier 存在
-})
-.then(response => response.json())
-.then(data => {
-  if (data.success) {
-    console.log('✅ 支付已成功完成');
-  } else {
-    console.error('❌ 支付完成失败:', data.error);
-  }
-})
-.catch(error => {
-  console.error('❌ 支付处理失败:', error);
-});
+    if (!payment || !payment.identifier || !payment.transaction) {
+        console.error("❌ 支付信息缺失:", payment);
+        return;
+    }
 
+    const payment_id = payment.identifier; // 提取支付 ID
+    const txid = payment.transaction.txid; // 提取交易 ID（如果有）
+    
+    if (!txid) {
+        console.warn("⚠️ 交易 ID 缺失，可能未上链:", payment);
+        return;
+    }
+
+    console.log("🔄 重新尝试完成支付:", payment_id, txid);
+
+    fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/completepayment", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            payment_id: payment_id,
+            txid: txid
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        console.log("✅ 支付完成结果:", result);
+    })
+    .catch(error => {
+        console.error("❌ 支付请求失败:", error);
+    });
 }
 
 function cancelPayment(payment) {
