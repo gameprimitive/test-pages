@@ -126,11 +126,16 @@ function cancelPayment(payment) {
             onReadyForServerApproval: async (paymentId) => {
                 console.log("支付等待批准:", paymentId);
                  try {
-        const response = await fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/approvePayment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ paymentId, uid: currentUser.uid }) // 传递 uid
-        });
+        const response = await fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/completepayment", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            payment_id: payment_id,
+            txid: txid
+        })
+    })
 
         const result = await response.json();
         
