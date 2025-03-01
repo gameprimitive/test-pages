@@ -111,50 +111,63 @@ function cancelPayment(payment) {
   });
 }
         // 支付功能
-        async function pay() {
-            if (!currentUser) return alert("请先登录！");
+       async function pay() {
+    if (!currentUser) return alert("请先登录！");
 
-            try {
-                const paymentData = {
-                    amount: 3.14,
-                    memo: "测试支付",
-                    metadata: { test: "123" },
-                    uid: currentUser.uid // 使用 currentUser 变量
-                };
+    try {
+        const paymentData = {
+            amount: 3.14,
+            memo: "测试支付",
+            metadata: { test: "123" },
+            uid: currentUser.uid
+        };
 
-                const paymentCallbacks = {
-                    onReadyForServerApproval: async (paymentId) => {
-                        console.log("支付等待批准:", paymentId);
-                        // 向后端请求批准支付
-                        const response = await fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/approvePayment", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ paymentId })
-                        });
-                        const result = await response.json();
-                        if (result.success) {
-                            console.log("支付已批准，交易ID:", result.txid);
-                        } else {
-                            console.error("支付批准失败:", result.error);
-                        }
-                    },
-                    onReadyForServerCompletion: (paymentId, txid) => {
-                        alert("支付成功！交易ID: " + txid);
-                    },
-                    onCancel: (paymentId) => {
-                        alert("用户取消支付");
-                    },
-                    onError: (error) => {
-                        alert("支付错误: " + error.message);
-                    }
-                };
+        const paymentCallbacks = {
+            onReadyForServerApproval: async (paymentId) => {
+                console.log("支付等待批准:", paymentId);
+                const response = await fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/approvePayment", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ paymentId, uid: currentUser.uid }) // 传递 uid
+                });
+                const result = await response.json();
+                if (result.success) {
+                    console.log("支付已批准，交易ID:", result.txid);
+                } else {
+                    console.error("支付批准失败:", result.error);
+                }
+            },
+            onReadyForServerCompletion: async (paymentId, txid) => {
+                console.log("支付完成，通知后端:", paymentId, txid);
+                const response = await fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/completePayment", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ paymentId, txid })
+                });
 
-                const payment = await Pi.createPayment(paymentData, paymentCallbacks);
-                console.log("支付已发起:", payment);
-            } catch (error) {
-                alert("支付失败: " + error.message);
+                const result = await response.json();
+                if (result.success) {
+                    alert("支付成功！交易ID: " + txid);
+                } else {
+                    alert("支付完成通知失败: " + result.error);
+                }
+            },
+            onCancel: (paymentId) => {
+                alert("用户取消支付");
+            },
+            onError: (error) => {
+                console.error("支付错误:", error);
+                alert("支付错误: " + (error.response ? JSON.stringify(error.response.data) : error.message));
             }
-        }
+        };
+
+        const payment = await Pi.createPayment(paymentData, paymentCallbacks);
+        console.log("支付已发起:", payment);
+    } catch (error) {
+        alert("支付失败: " + error.message);
+    }
+}
+
     </script>
 </head>
 <body>

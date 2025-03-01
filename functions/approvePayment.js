@@ -3,7 +3,7 @@ const axios = require('axios');
 
 exports.handler = async function(event, context) {
     const { paymentId } = JSON.parse(event.body);
-
+	console.log("收到的请求 body:", event.body);
     // 替換為您的 Pi 應用的 API 金鑰
     const API_KEY = 'he0f7kqvflgdilyarfinvgyaulpbff1fosodotrhzlf5poeici6aufviegjdhtww';
 
@@ -30,6 +30,7 @@ exports.handler = async function(event, context) {
         }
     } catch (error) {
         console.error("伺服器批准支付失敗:", error);
+		console.error("伺服器批准支付失敗2:", error.response ? error.response.data : error);
         return {
             statusCode: 500,
             body: JSON.stringify({ success: false, error: error.message })
