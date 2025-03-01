@@ -61,19 +61,20 @@ fetch('https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/completepaym
   headers: {
     'Content-Type': 'application/json',
   },
-  body: JSON.stringify({ paymentId: payment.identifier }),
+  body: JSON.stringify({ paymentId: payment.identifier }), // 确保 payment.identifier 存在
 })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      console.log('✅ 支付已成功完成');
-    } else {
-      console.error('❌ 支付完成失败:', data.error);
-    }
-  })
-  .catch(error => {
-    console.error('❌ 支付处理失败:', error);
-  });
+.then(response => response.json())
+.then(data => {
+  if (data.success) {
+    console.log('✅ 支付已成功完成');
+  } else {
+    console.error('❌ 支付完成失败:', data.error);
+  }
+})
+.catch(error => {
+  console.error('❌ 支付处理失败:', error);
+});
+
 }
 
 function cancelPayment(payment) {
