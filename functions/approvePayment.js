@@ -38,7 +38,7 @@ exports.handler = async function(event, context) {
 
         // 如果支付还没完成，等待最多 15 秒（每 5 秒检查一次）
         let attempts = 0;
-        while (paymentStatus && paymentStatus.status !== "completed" && attempts < 3) {
+        while (paymentStatus && paymentStatus.status !== "completed" && attempts < 30) {
             console.log("⏳ 支付未完成，等待 5 秒后重试...");
             await new Promise(resolve => setTimeout(resolve, 5000));
             paymentStatus = await checkPaymentStatus();
