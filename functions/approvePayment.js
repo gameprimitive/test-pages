@@ -18,8 +18,14 @@ exports.handler = async function(event, context) {
         }
 
     // 替換為您的 Pi 應用的 API 金鑰
-    const API_KEY = 'he0f7kqvflgdilyarfinvgyaulpbff1fosodotrhzlf5poeici6aufviegjdhtww';
-
+    const API_KEY = process.env.API_KEY;
+ if (!API_KEY) {
+            console.error("❌ 错误: API_KEY 未定义，请检查 Netlify 环境变量设置");
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ success: false, error: "服务器错误: API_KEY 未定义" })
+            };
+        }
    // 調用 Pi 的 /approve API 進行支付批准
         const response = await axios.post(`https://api.minepi.com/v2/payments/${paymentId}/approve`, {}, {
             headers: {

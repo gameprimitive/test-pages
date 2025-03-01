@@ -15,7 +15,7 @@ exports.handler = async (event) => {
     }
 
     // Pi Network API 密钥（建议存储在环境变量中）
-    const APIKEY = 'he0f7kqvflgdilyarfinvgyaulpbff1fosodotrhzlf5poeici6aufviegjdhtww'; // ✅ 推荐存储在环境变量
+    const APIKEY =  process.env.API_KEY;
     if (!APIKEY) {
       return {
         statusCode: 500,
