@@ -139,16 +139,14 @@ function cancelPayment(payment) {
             },
             onReadyForServerCompletion: async (paymentId, txid) => {
                 console.log("支付完成，通知后端:", paymentId, txid);
-                const response = await  fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/completepayment", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
+                const response = await fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/completePayment", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
             payment_id: payment_id,
             txid: txid
         })
-    })
+                });
 
                 const result = await response.json();
                 if (result.success) {
