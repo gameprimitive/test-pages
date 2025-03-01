@@ -90,7 +90,6 @@ function handleIncompletePayment(payment) {
 }
 
 function cancelPayment(payment) {
-  // 发送请求到服务器，取消支付
   fetch('/server/cancel_payment', {
     method: 'POST',
     headers: {
@@ -102,6 +101,12 @@ function cancelPayment(payment) {
   .then(data => {
     if (data.success) {
       console.log('✅ 支付已取消');
+      
+      // 这里手动触发 onCancel
+      if (typeof paymentCallbacks.onCancel === "function") {
+        paymentCallbacks.onCancel(payment.identifier);
+      }
+      
     } else {
       console.error('❌ 支付取消失败:', data.error);
     }
@@ -110,6 +115,7 @@ function cancelPayment(payment) {
     console.error('❌ 支付取消处理失败:', error);
   });
 }
+
         // 支付功能
        async function pay() {
     if (!currentUser) return alert("请先登录！");
