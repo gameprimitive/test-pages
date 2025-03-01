@@ -40,43 +40,18 @@
 
 
 
- async function handleIncompletePayment(payment) {
-  try {
-    const response = await fetch("https://tubular-kelpie-4997f4.netlify.app/.netlify/functions/verifyPayment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paymentId: payment.identifier }),
-    });
+async function onIncompletePaymentFound(payment) {
+  console.log('⚠️ 发现未完成的支付:', payment);
+  
+  // 提示用户选择继续或取消支付
+  const userChoice = confirm(`您有一笔未完成的支付：${payment.memo}，金额：${payment.amount} Pi。是否继续完成支付？`);
 
-    // 添加响应状态检查
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "验证支付失败");
-    }
-
-    const result = await response.json();
-    
-    // 安全访问对象属性
-    const paymentStatus = result.status || {};
-    const isCancelled = paymentStatus.cancelled || paymentStatus.user_cancelled;
-
-    if (isCancelled) {
-      console.log("取消遗留支付");
-      await Pi.cancelPayment(payment.identifier);
-      return;
-    }
-
-    if (paymentStatus.transaction_verified && !paymentStatus.developer_completed) {
-      console.log("完成待处理的支付");
-      await Pi.completePayment(payment.identifier);
-    }
-
-  } catch (error) {
-    console.error("支付处理失败:", error);
-    // 显示用户友好提示
-    alert(`处理失败: ${error.message}`);
-    // 自动重试机制
-    setTimeout(() => handleIncompletePayment(payment), 10000);
+  if (userChoice) {
+    // 用户选择继续支付
+    handleIncompletePayment(payment);
+  } else {
+    // 用户选择取消支付
+    cancelPayment(payment);
   }
 }
         // 支付功能
