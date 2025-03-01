@@ -27,5 +27,6 @@ axios.post(postingURL, { txid: txid }, headers)
   .catch(error => {
     // 处理错误响应
     console.error(error);
-    res.status(500).json({ error: '支付完成处理失败'+payment_id });
+	console.error(payment_id);
+    res.status(500).json({ error: '支付完成处理失败' });
   });
