@@ -54,6 +54,49 @@ async function onIncompletePaymentFound(payment) {
     cancelPayment(payment);
   }
 }
+function handleIncompletePayment(payment) {
+  // 发送请求到服务器，尝试完成支付
+  fetch('/server/complete_payment', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ paymentId: payment.identifier }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      console.log('✅ 支付已成功完成');
+    } else {
+      console.error('❌ 支付完成失败:', data.error);
+    }
+  })
+  .catch(error => {
+    console.error('❌ 支付处理失败:', error);
+  });
+}
+
+function cancelPayment(payment) {
+  // 发送请求到服务器，取消支付
+  fetch('/server/cancel_payment', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ paymentId: payment.identifier }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      console.log('✅ 支付已取消');
+    } else {
+      console.error('❌ 支付取消失败:', data.error);
+    }
+  })
+  .catch(error => {
+    console.error('❌ 支付取消处理失败:', error);
+  });
+}
         // 支付功能
         async function pay() {
             if (!currentUser) return alert("请先登录！");
